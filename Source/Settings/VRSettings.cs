@@ -91,6 +91,8 @@ namespace TarkovVR.Source.Settings
             public float viveWandCrouchTrackpadThreshold { get; set; }
             public float viveWandVaultHoldTime { get; set; }
             
+            public bool heldItemWeight { get; set; }
+            
             public ModSettings()
             {
                 rotationSensitivity = 4;
@@ -128,6 +130,7 @@ namespace TarkovVR.Source.Settings
                 useVRKeyboard = false;
                 viveWandCrouchTrackpadThreshold = 0.7f;
                 viveWandVaultHoldTime = 0.3f;
+                heldItemWeight = false;
             }
             // Add more settings as needed
         }
@@ -177,6 +180,7 @@ namespace TarkovVR.Source.Settings
         private static SettingToggle disableRunAnimationToggle;
         private static SettingToggle seatedModeToggle;
         private static SettingToggle useVRKeyboardToggle;
+        private static SettingToggle heldItemWeightToggle;
 
 
         private static ModSettings settings;
@@ -360,6 +364,12 @@ namespace TarkovVR.Source.Settings
             weaponInertiaToggle.Toggle.action_0 = SetWeaponInertiaOn;
             weaponInertiaToggle.Text.localizationKey = "Turn On EFT Weapon Inertia";
             weaponInertiaToggle.Toggle.UpdateValue(settings.weaponInertia);
+
+            heldItemWeightToggle = newSoundSettings.CreateControl(settingsUi._soundSettingsScreen._togglePrefab, slidersPanel);
+            heldItemWeightToggle.BindTo(settingsUi._soundSettingsScreen.soundSettingsControllerClass.MusicOnRaidEnd);
+            heldItemWeightToggle.Toggle.action_0 = SetHeldItemWeight;
+            heldItemWeightToggle.Text.localizationKey = "Turn On Held Item Adds To Carry Weight";
+            heldItemWeightToggle.Toggle.UpdateValue(settings.heldItemWeight);
 
             aimSmoothingSlider = newSoundSettings.CreateControl(settingsUi._soundSettingsScreen._selectSliderPrefab, slidersPanel);
             aimSmoothingSlider.BindIndexTo(settingsUi._soundSettingsScreen.soundSettingsControllerClass.OverallVolume, settingsUi._soundSettingsScreen.readOnlyCollection_0, (x) => x.ToString());
@@ -1069,7 +1079,6 @@ namespace TarkovVR.Source.Settings
             settings.useVRKeyboard = turnOn;
         }
 
-        // ---- Vive Crouch Threshold ----
         public static float GetCrouchThreshold()
         {
             return settings.viveWandCrouchTrackpadThreshold;
@@ -1109,10 +1118,20 @@ namespace TarkovVR.Source.Settings
             }
             return best;
         }
+
         private static void SetVaultHoldTime(int index)
         {
             if (index >= 0 && index < ViveWandVaultTimeValues.Length)
                 settings.viveWandVaultHoldTime = ViveWandVaultTimeValues[index];
+        }
+
+        public static bool GetHeldItemWeight()
+        {
+            return settings.heldItemWeight;
+        }
+        private static void SetHeldItemWeight(bool turnOn)
+        {
+            settings.heldItemWeight = turnOn;
         }
     }
 }
