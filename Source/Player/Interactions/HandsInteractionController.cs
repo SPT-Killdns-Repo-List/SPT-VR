@@ -690,7 +690,7 @@ namespace TarkovVR.Source.Player.Interactions
                 if (VRGlobals.player?.Physical is not PlayerPhysicalClass physical) 
                     return;
 
-                if (physical.HandsStamina.Exhausted)
+                if (physical.HandsStamina.Current <= 0f)
                 {
                     ForceDropHeldItem();
                     return;
