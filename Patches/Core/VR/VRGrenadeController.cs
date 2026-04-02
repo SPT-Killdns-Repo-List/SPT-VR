@@ -22,6 +22,13 @@ namespace TarkovVR.Patches.Core.VR
         
         public static bool throwInProgress = false;
         public static BaseGrenadeHandsController activeGrenadeController = null;
+
+        /// <summary>
+        /// Set to true by ChestGrenadeHandler before calling method_9 so that
+        /// RepositionGrenadeThrow uses the LEFT controller velocity instead of the right.
+        /// Automatically reset to false after each throw.
+        /// </summary>
+        public static bool useLeftHandForThrow = false;
         private static float lastNormalizedTime = 0f;
         private static float freezeStartTime = 0f;
         private static bool isFrozen = false;
@@ -160,10 +167,19 @@ namespace TarkovVR.Patches.Core.VR
             if (!WeaponPatches.pinPulled)
                 return false;
 
-            Vector3 throwVelocity = ControllerVelocity.GetSteamVRVelocity(SteamVR_Input_Sources.RightHand);
+            // Choose which hand to use for throw velocity
+            SteamVR_Input_Sources throwSource = useLeftHandForThrow
+                ? SteamVR_Input_Sources.LeftHand
+                : SteamVR_Input_Sources.RightHand;
+
+            Vector3    throwVelocity = ControllerVelocity.GetSteamVRVelocity(throwSource);
+            Vector3    throwPos      = ControllerVelocity.GetSteamVRPosition(throwSource);
+            Quaternion throwRot      = ControllerVelocity.GetSteamVRRotation(throwSource);
+
+            // Reset the flag immediately so normal throws are unaffected
+            useLeftHandForThrow = false;
+
             Vector3 force;
-            Vector3 throwPos = ControllerVelocity.GetSteamVRPosition(SteamVR_Input_Sources.RightHand);
-            Quaternion throwRot = ControllerVelocity.GetSteamVRRotation(SteamVR_Input_Sources.RightHand);
 
             // Starts animation around the point where hand is opening to throw
             __instance.firearmsAnimator_0.Animator.Play(590329303, 1, 0.40f);
@@ -185,8 +201,11 @@ namespace TarkovVR.Patches.Core.VR
             }
             else
             {
-                Vector3 defaultDirection = VRGlobals.vrPlayer.RightHand.transform.forward;
-                force = defaultDirection * (forcePower * lowHighThrow * 0.5f);
+                // Fallback: use whichever hand is throwing
+                Transform handTransform = useLeftHandForThrow
+                    ? VRGlobals.vrPlayer.LeftHand.transform
+                    : VRGlobals.vrPlayer.RightHand.transform;
+                force = handTransform.forward * (forcePower * lowHighThrow * 0.5f);
             }
 
             if (withVelocity)

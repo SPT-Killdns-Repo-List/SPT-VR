@@ -31,6 +31,7 @@ using TarkovVR.Source.Player.Body;
 using static DistantShadow;
 using TarkovVR.Source.Graphics;
 using TarkovVR.Patches.Upscalers;
+using Object = UnityEngine.Object;
 
 namespace TarkovVR.Patches.Core.VR
 {
@@ -70,6 +71,8 @@ namespace TarkovVR.Patches.Core.VR
         private static Transform originalRightHandMarker;
         public static Transform quickSlot;
         public static Transform rigCollider;
+        public static Transform chestGrenadeZone;
+        public static readonly Vector3 ChestGrenadeZoneLocalPos = new Vector3(-0.17f, 0.035f, 0.017f);
         public static Transform leftWrist;
         //------------------------------------------------------------------------------------------------------------------------------------------------------------
         [HarmonyPostfix]
@@ -101,6 +104,7 @@ namespace TarkovVR.Patches.Core.VR
                     VRGlobals.weaponHolder.transform.parent = VRGlobals.vrPlayer.RightHand.transform;
                     VRGlobals.vrOpticController = VRGlobals.camHolder.AddComponent<VROpticController>();
                     VRGlobals.handsInteractionController = VRGlobals.camHolder.AddComponent<HandsInteractionController>();
+                    VRGlobals.camHolder.AddComponent<TarkovVR.Source.Player.Interactions.ChestGrenadeHandler>();
                     SphereCollider collider = VRGlobals.camHolder.AddComponent<SphereCollider>();
                     collider.radius = 0.2f;
                     collider.isTrigger = true;
@@ -726,6 +730,14 @@ namespace TarkovVR.Patches.Core.VR
             collider.isTrigger = true;
             collider.size = new Vector3(0.04f, 0.1f, 0.2f);
 
+            // Chest grenade zone — parented to spine (body), localPosition is relative to ribcage
+            chestGrenadeZone = new GameObject("chestGrenadeZone").transform;
+            chestGrenadeZone.parent = __instance.transform.parent;
+            chestGrenadeZone.localEulerAngles = Vector3.zero;
+            chestGrenadeZone.localPosition = ChestGrenadeZoneLocalPos;
+
+            //ShowChestGrenadeDebugSphere();
+
             //debug for collider
             /*
             GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -740,7 +752,28 @@ namespace TarkovVR.Patches.Core.VR
         }
         // local pos -0.1 -0.15 -0.1
         // size 0.001 0.005 0.005
+        
+    
+        private static void ShowChestGrenadeDebugSphere()
+        {
+            GameObject debugSphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            debugSphere.name = "chestGrenadeDebugSphere";
+            debugSphere.transform.SetParent(chestGrenadeZone, false);
+            debugSphere.transform.localPosition = Vector3.zero;
+            Object.Destroy(debugSphere.GetComponent<Collider>());
+            Renderer rend = debugSphere.GetComponent<Renderer>();
+            if (rend != null)
+            {
+                Material mat = new(Shader.Find("Sprites/Default"))
+                {
+                    color = new Color(0f, 1f, 0f, 0.25f)
+                };
+                rend.material = mat;
+            }
 
-
+            // MonoBehaviour applies config (position, radius, visibility) every frame
+            chestGrenadeZone.gameObject.AddComponent<ChestGrenadeZoneUpdater>();
+        }
     }
+    
 }
