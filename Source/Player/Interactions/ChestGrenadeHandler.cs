@@ -585,6 +585,11 @@ namespace TarkovVR.Source.Player.Interactions
 
             try
             {
+                if (Singleton<GameWorld>.Instantiated)
+                {
+                    Singleton<GameWorld>.Instance.DestroyLoot(lootItem);
+                }
+                
                 lootItem.Kill();
             }
             catch
@@ -612,7 +617,7 @@ namespace TarkovVR.Source.Player.Interactions
 
                 Vector3 finalForce = throwForce + VRGlobals.player.Velocity;
 
-                Grenade grenade = Singleton<GInterface169>.Instance.GrenadeFactory.Create(
+                Grenade grenade = new GrenadeFactoryClass().Create(
                     grenadeSettings,
                     throwPos,
                     throwRot,
