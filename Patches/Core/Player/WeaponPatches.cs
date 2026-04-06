@@ -1489,9 +1489,9 @@ namespace TarkovVR.Patches.Core.Player
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(FirearmController), "InitiateShot")]
-        private static void ShotHapticFeedback()
+        private static void ShotHapticFeedback(FirearmController __instance)
         {
-            if (VRGlobals.vrPlayer == null)
+            if (VRGlobals.vrPlayer == null || __instance._player != VRGlobals.player)
             {
                 return;
             }
